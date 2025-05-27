@@ -6,6 +6,7 @@ import views
 mc_dir = mc.utils.get_minecraft_directory()
 user_file = os.path.join(mc_dir, "user.json")
 
+
 def main(page: ft.Page):
     page.title = "Minecraft Launcher"
     page.theme_mode = ft.ThemeMode.LIGHT
