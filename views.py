@@ -107,12 +107,12 @@ def view_initial(page):
     )
     page.overlay.append(change_dialog)
 
-    def obtaint_resource_route(file_name):
+    def obtain_resource_route(file_name):
         if hasattr(sys, '_MEIPASS'):
             return os.path.join(sys._MEIPASS, file_name)
         return os.path.join(os.path.abspath("."), file_name)
 
-    logo_route = obtaint_resource_route("logo.png")
+    logo_route = obtain_resource_route("logo.png")
     logo_image = ft.Container(
         content=ft.Image(
             src=logo_route,
