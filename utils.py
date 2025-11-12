@@ -1,9 +1,11 @@
 import subprocess
+
 import flet as ft
 import minecraft_launcher_lib as mc
 from users import save_user
 
 mc_dir = mc.utils.get_minecraft_directory()
+
 
 def close_popup(dialog, page):
     dialog.open = False
@@ -72,11 +74,21 @@ def start_game(version_id, ram, user_data, page):
         "username": user_data["username"],
         "uuid": user_data["uuid"],
         "token": "token",
-        "jvmArguments": [f"-Xmx{ram_mb}M"]
+        "jvmArguments": [f"-Xmx{ram_mb}M"],
     }
+
     command = mc.command.get_minecraft_command(version_id, mc_dir, settings)
-    subprocess.run(command)
+
+    subprocess.Popen(
+        command,
+        shell=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        creationflags=subprocess.CREATE_NO_WINDOW
+    )
+
     page.go("/")
+
 
 def create_alert(message, page):
     return ft.AlertDialog(

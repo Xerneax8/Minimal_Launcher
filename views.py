@@ -11,6 +11,7 @@ from utils import create_alert, start_game, change_dialog_open, close_popup, sav
 mc_dir = mc.utils.get_minecraft_directory()
 user_file = os.path.join(mc_dir, "user.json")
 
+
 def view_initial(page):
     user = users.load_user()
     last_instance_name = user.get("last_instance")
@@ -77,6 +78,7 @@ def view_initial(page):
                 data = json.load(f)
             start_game(data["version"], data["ram"], user, page)
         except Exception as ex:
+            print(ex)
             page.dialog = create_alert(f"No se pudo iniciar la instancia: {ex}", page)
             page.dialog.open = True
             starting_game_message.visible = False  # Ocultar mensaje si falla
@@ -221,6 +223,7 @@ def view_loaders(page):
                  ft.Row([
                      ft.ElevatedButton("Vanilla", on_click=lambda e: page.go("/vanilla")),
                      ft.ElevatedButton("Forge", on_click=lambda e: page.go("/forge")),
+                     ft.ElevatedButton("Fabric", on_click=lambda e: page.go("/fabric"))
                  ], alignment=ft.MainAxisAlignment.CENTER, spacing=10)],
                 alignment=ft.MainAxisAlignment.CENTER,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
@@ -365,6 +368,90 @@ def view_forge(page):
     )
 
 
+def view_fabric(page):
+    # Get all Fabric-compatible Minecraft versions
+    fabric_versions = mc.fabric.get_stable_minecraft_versions()
+    fabric_version_per_mc_version = {}
+
+    # Group loader versions by Minecraft version
+    for v in fabric_versions:
+        mc_ver = v
+        loaders = [loader["version"] for loader in mc.fabric.get_all_loader_versions()]
+        fabric_version_per_mc_version[mc_ver] = loaders
+
+    selected_mc = ft.Ref[ft.Dropdown]()
+    selected_loader = ft.Ref[ft.Dropdown]()
+    loader_dropdown = ft.Dropdown(ref=selected_loader, label="Versión de Fabric Loader", options=[], width=250)
+
+    error_message = ft.Text(value="❗ Selecciona ambas versiones antes de continuar.", color="red", visible=False)
+
+    # When a Minecraft version is selected, update available loader versions
+    def fabric_install(e):
+        mc_ver = selected_mc.current.value
+        loader_dropdown.options = [
+            ft.dropdown.Option(v) for v in fabric_version_per_mc_version.get(mc_ver, [])
+        ] if mc_ver else []
+        loader_dropdown.value = None
+        page.update()
+
+    # Async installation
+    async def install(e):
+        mc_ver = selected_mc.current.value
+        loader_ver = selected_loader.current.value
+        if not mc_ver or not loader_ver:
+            error_message.visible = True
+            page.update()
+            return
+
+        error_message.visible = False
+        page.views.append(view_loading())
+        page.update()
+
+        try:
+            await asyncio.to_thread(
+                mc.fabric.install_fabric, mc_ver, mc_dir, loader_ver
+            )
+            page.go("/successful_installation")
+        except Exception as ex:
+            page.views.pop()
+            page.views.append(view_message(page, f"❌ Error al instalar: {ex}", "/fabric"))
+            page.update()
+
+    # Build the Fabric installer page
+    return ft.View(
+        route="/fabric",
+        appbar=ft.AppBar(title=ft.Text("Instalador de Fabric")),
+        controls=[
+            ft.Container(
+                content=ft.Column(
+                    [
+                        ft.Row([
+                            ft.Dropdown(
+                                ref=selected_mc,
+                                label="Versión de Minecraft",
+                                options=[ft.dropdown.Option(v) for v in
+                                         sorted(fabric_version_per_mc_version.keys(), reverse=True)],
+                                on_change=fabric_install,
+                                width=250
+                            ),
+                            loader_dropdown
+                        ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                            spacing=20),
+                        ft.ElevatedButton("Instalar versión", on_click=install),
+                        error_message
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    spacing=20
+                ),
+                alignment=ft.alignment.center,
+                expand=True
+            )
+        ]
+    )
+
+
 def view_create_instance(page):
     if os.path.exists(user_file):
         with open(user_file, "r") as f:
@@ -469,7 +556,8 @@ def view_instances(page):
                 data = json.load(f)
                 data["archive"] = file
                 instances.append(data)
-        except:
+        except Exception as e:
+            print(e)
             continue
 
     selected = ft.Ref[ft.RadioGroup]()

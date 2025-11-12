@@ -177,3 +177,4 @@ logs/
 console_test.py
 gui.py
 .gitattributes
+config/

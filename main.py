@@ -18,12 +18,13 @@ def main(page: ft.Page):
         "/vanilla": lambda: views.view_vanilla(page),
         "/forge": lambda: views.view_forge(page),
         "/create_instance": lambda: views.view_create_instance(page),
-        "/successful_installation": lambda: views.view_successful_installation,
+        "/successful_installation": lambda: views.view_successful_installation(),
         "/instances": lambda: views.view_instances(page),
         "/others": lambda: views.view_other_options(page),
         "/mods": lambda: views.view_mods(page),
         "/texture": lambda: views.view_textures(page),
-        "/shaders": lambda: views.view_shaders(page)
+        "/shaders": lambda: views.view_shaders(page),
+        "/fabric": lambda :views.view_fabric(page)
     }
 
     def change_route(e):
