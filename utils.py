@@ -1,4 +1,5 @@
 import subprocess
+import sys
 
 import flet as ft
 import minecraft_launcher_lib as mc
@@ -79,13 +80,21 @@ def start_game(version_id, ram, user_data, page):
 
     command = mc.command.get_minecraft_command(version_id, mc_dir, settings)
 
-    subprocess.Popen(
-        command,
-        shell=False,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        creationflags=subprocess.CREATE_NO_WINDOW
-    )
+    if sys.platform == "win32":
+        subprocess.Popen(
+            command,
+            shell=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            creationflags=subprocess.CREATE_NO_WINDOW
+        )
+    else:
+        subprocess.Popen(
+            command,
+            shell=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
 
     page.go("/")
 
