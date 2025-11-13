@@ -867,7 +867,7 @@ def view_files(page, folder_name, title_text, route_path):
         return row
 
     try:
-        files = os.listdir(folder_path)
+        files = [f for f in os.listdir(folder_path) if not f.endswith(".txt")]
     except FileNotFoundError:
         files = []
     except Exception as e:
