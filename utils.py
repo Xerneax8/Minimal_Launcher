@@ -96,8 +96,6 @@ def start_game(version_id, ram, user_data, page):
             stderr=subprocess.PIPE,
         )
 
-    page.go("/")
-
 
 def create_alert(message, page):
     return ft.AlertDialog(
